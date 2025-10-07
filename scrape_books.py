@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+import numpy as np
 import os
 
 load_dotenv()
@@ -20,7 +21,7 @@ def scrape_books(url):
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        response.encoding = "utf-8"  
+        response.encoding = "utf-8" 
     except requests.exceptions.RequestException as e:
         print(f"Error connecting to {url}: {e}")
         return []
@@ -68,16 +69,32 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(books)
     df["timestamp"] = timestamp
-
     df.to_csv("books_converted.csv", index=False)
 
     print(f"\n=== Books with Converted Prices ({CURRENCY_FROM} → {CURRENCY_TO}) ===")
     print(df.to_string(index=False))
 
+    x = np.arange(len(df["name"])) 
+    width = 0.35  
+
     plt.figure(figsize=(10, 5))
-    plt.bar(df["name"], df["price_gbp"], label=f"Price in {CURRENCY_FROM}")
-    plt.bar(df["name"], df["price_converted"], label=f"Price in {CURRENCY_TO}", alpha=0.7)
-    plt.xticks(rotation=45, ha="right")
+    plt.bar(
+        x - width/2,
+        df["price_gbp"],
+        width,
+        color="skyblue",
+        label=f"Price in {CURRENCY_FROM}"
+    )
+    plt.bar(
+        x + width/2,
+        df["price_converted"],
+        width,
+        color="lightgreen",
+        label=f"Price in {CURRENCY_TO}",
+        alpha=0.8
+    )
+
+    plt.xticks(x, df["name"], rotation=45, ha="right")
     plt.ylabel("Price")
     plt.title(f"Book Prices: {CURRENCY_FROM} vs {CURRENCY_TO}")
     plt.legend()
